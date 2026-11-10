@@ -41,6 +41,10 @@ The primary prompt provided was the comprehensive SmartBox PRD v1.0 specificatio
    - *Issue*: Django's `startapp recommendations` created a default `tests.py`, while our project architecture required a modular `recommendations/tests/` directory with separate test modules. Running `python manage.py test` produced an `ImportError: 'tests' module incorrectly imported`.
    - *Modification*: Deleted the redundant root `tests.py` in `recommendations/`, resolving the unittest discovery clash.
 
+4. **Order Creation Form Validation (`orders/forms.py` & `orders/views.py`)**:
+   - *Issue*: `OrderForm` originally included `status` in `fields = ["order_number", "customer_name", "customer_email", "status"]`. Because `status` was not rendered as a user-editable input in the creation template, standard Django validation failed with `status: This field is required`, causing submissions to re-render without saving.
+   - *Modification*: Removed `status` from `OrderForm` creation fields, defaulted `order.status = OrderStatus.PENDING` on save, added detailed error messaging for invalid form submissions, and ensured dynamically added formset rows properly reset hidden input keys.
+
 ---
 
 ## 5. Mistakes Found
@@ -75,3 +79,4 @@ The implementation was independently verified through rigorous validation steps:
    - Implemented snapshot fields on `OrderItem` and `Recommendation` so historical shipping audits and cartonization decisions remain permanently reproducible regardless of future catalog modifications.
 4. **Three-Tier Deterministic Box Ranking**:
    - Enforced deterministic ranking by `(cost, volume, code)` so identical order inputs always yield the same optimal recommendation.
+
