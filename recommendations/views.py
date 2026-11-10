@@ -154,12 +154,45 @@ def recommendation_detail(request, pk):
     rejected_results = rec.box_results.filter(is_eligible=False)
     primary_result = eligible_results.first()
 
+    box_dims = {"length": 30.0, "width": 20.0, "height": 15.0}
+    if rec.result_payload and "recommended_box" in rec.result_payload and rec.result_payload["recommended_box"]:
+        b_info = rec.result_payload["recommended_box"]["box"]
+        box_dims = {
+            "length": float(b_info.get("length", 30)),
+            "width": float(b_info.get("width", 20)),
+            "height": float(b_info.get("height", 15)),
+        }
+    elif rec.selected_box:
+        box_dims = {
+            "length": float(rec.selected_box.length),
+            "width": float(rec.selected_box.width),
+            "height": float(rec.selected_box.height),
+        }
+
+    placements_data = []
+    if primary_result:
+        for p in primary_result.placements.all():
+            placements_data.append({
+                "sku": p.item_sku,
+                "name": p.item_name,
+                "unit_index": p.unit_index,
+                "x": float(p.x),
+                "y": float(p.y),
+                "z": float(p.z),
+                "length": float(p.placed_length),
+                "width": float(p.placed_width),
+                "height": float(p.placed_height),
+            })
+
+    import json
     return render(request, "recommendations/recommendation_detail.html", {
         "recommendation": rec,
         "order": rec.order,
         "primary_result": primary_result,
         "eligible_results": eligible_results,
         "rejected_results": rejected_results,
+        "box_dims_json": json.dumps(box_dims),
+        "placements_json": json.dumps(placements_data),
     })
 
 

@@ -156,11 +156,23 @@
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <div>
             <i class="bi bi-bounding-box-circles text-primary me-2"></i>
-            <span class="fw-bold">3D Packing Placements & Coordinate Mapping ({{ primary_result.box_code }})</span>
+            <span class="fw-bold">Interactive 3D Packing Visualization & Placements ({{ primary_result.box_code }})</span>
         </div>
         <span class="badge bg-light text-dark border">Deterministic Extreme Point Heuristic</span>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-3">
+        <!-- Interactive 3D WebGL Canvas -->
+        <div class="bg-dark rounded-3 position-relative overflow-hidden mb-3" style="height: 380px;" id="threeContainer">
+            <div class="position-absolute top-0 start-0 m-3 z-3 bg-dark bg-opacity-75 p-2 rounded text-white small">
+                <i class="bi bi-arrows-move me-1"></i> <strong>Controls:</strong> Left-click + Drag to rotate &bull; Scroll to zoom &bull; Right-click to pan
+            </div>
+            <div id="threeCanvas" style="width: 100%; height: 100%;"></div>
+        </div>
+
+        <!-- Color Legend -->
+        <div class="d-flex flex-wrap gap-2 mb-3 px-1" id="boxLegend"></div>
+    </div>
+    <div class="card-body p-0 border-top">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -292,4 +304,122 @@
         </div>
     </div>
 </div>
+
+{% block extra_js %}
+<!-- Three.js & OrbitControls CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("threeCanvas");
+    if (!container) return;
+
+    const boxDims = {{ box_dims_json|safe|default:'{"length": 40, "width": 30, "height": 20}' }};
+    const placements = {{ placements_json|safe|default:'[]' }};
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    // Scene & Camera
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f172a);
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    const maxDim = Math.max(boxDims.length, boxDims.width, boxDims.height);
+    camera.position.set(maxDim * 1.6, maxDim * 1.5, maxDim * 2.0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(maxDim * 2, maxDim * 3, maxDim * 2);
+    scene.add(dirLight);
+
+    // Box Container Wireframe
+    const boxGeo = new THREE.BoxGeometry(boxDims.length, boxDims.height, boxDims.width);
+    const boxEdges = new THREE.EdgesGeometry(boxGeo);
+    const boxLine = new THREE.LineSegments(boxEdges, new THREE.LineBasicMaterial({ color: 0x60a5fa, linewidth: 2 }));
+    boxLine.position.set(boxDims.length / 2, boxDims.height / 2, boxDims.width / 2);
+    scene.add(boxLine);
+
+    // Grid Floor
+    const gridHelper = new THREE.GridHelper(maxDim * 2, 20, 0x334155, 0x1e293b);
+    gridHelper.position.set(boxDims.length / 2, 0, boxDims.width / 2);
+    scene.add(gridHelper);
+
+    // Color palette for items
+    const colors = [0x3b82f6, 0x10b981, 0xf59e0b, 0xec4899, 0x8b5cf6, 0x06b6d4, 0xf97316];
+    const legendContainer = document.getElementById("boxLegend");
+
+    placements.forEach((p, index) => {
+        const color = colors[index % colors.length];
+
+        // Three.js coordinates: Y is vertical (height), Z is depth (width), X is length
+        const itemGeo = new THREE.BoxGeometry(p.length, p.height, p.width);
+        const itemMat = new THREE.MeshStandardMaterial({
+            color: color,
+            roughness: 0.3,
+            metalness: 0.1,
+            transparent: true,
+            opacity: 0.92
+        });
+        const mesh = new THREE.Mesh(itemGeo, itemMat);
+
+        // Center position adjustment (Three.js anchors box at center)
+        mesh.position.set(
+            p.x + (p.length / 2),
+            p.z + (p.height / 2),
+            p.y + (p.width / 2)
+        );
+
+        // Edges for crisp definition
+        const itemEdges = new THREE.EdgesGeometry(itemGeo);
+        const line = new THREE.LineSegments(itemEdges, new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 1 }));
+        mesh.add(line);
+
+        scene.add(mesh);
+
+        // Add to legend
+        if (legendContainer) {
+            const badge = document.createElement("span");
+            badge.className = "badge border text-white";
+            badge.style.backgroundColor = `#${color.toString(16).padStart(6, '0')}`;
+            badge.innerHTML = `<i class="bi bi-box-fill me-1"></i> ${p.sku} #${p.unit_index} (${p.length}×${p.width}×${p.height}cm)`;
+            legendContainer.appendChild(badge);
+        }
+    });
+
+    controls.target.set(boxDims.length / 2, boxDims.height / 2, boxDims.width / 2);
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener("resize", function() {
+        if (!container) return;
+        const newW = container.clientWidth;
+        const newH = container.clientHeight;
+        camera.aspect = newW / newH;
+        camera.updateProjectionMatrix();
+        renderer.setSize(newW, newH);
+    });
+});
+</script>
 {% endblock %}
+{% endblock %}
+
