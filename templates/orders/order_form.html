@@ -62,6 +62,10 @@
                         {% endfor %}
                     </div>
 
+                    <button type="button" class="btn btn-outline-secondary btn-sm mb-3" id="addItemBtn">
+                        <i class="bi bi-plus-circle me-1"></i> Add Another Product Line
+                    </button>
+
                     <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                         <a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary px-4">Save Order</button>
@@ -71,4 +75,34 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const addBtn = document.getElementById("addItemBtn");
+    const container = document.getElementById("itemsContainer");
+    const totalForms = document.getElementById("id_items-TOTAL_FORMS");
+
+    if (addBtn && container && totalForms) {
+        addBtn.addEventListener("click", function() {
+            const formCount = parseInt(totalForms.value);
+            const firstRow = container.querySelector(".item-row");
+            if (!firstRow) return;
+
+            const newRow = firstRow.cloneNode(true);
+            const regex = new RegExp(`items-(\\d+)-`, "g");
+            newRow.innerHTML = newRow.innerHTML.replace(regex, `items-${formCount}-`);
+
+            // Reset inputs
+            newRow.querySelectorAll("input, select").forEach(input => {
+                if (input.type === "number") input.value = "1";
+                else if (input.type !== "hidden") input.selectedIndex = 0;
+            });
+
+            container.appendChild(newRow);
+            totalForms.value = formCount + 1;
+        });
+    }
+});
+</script>
 {% endblock %}
+
