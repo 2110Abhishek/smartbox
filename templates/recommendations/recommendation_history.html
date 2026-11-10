@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Recommendation History - SmartBox{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Recommendation History</h2>
+        <p class="text-muted mb-0">Audit trail of all packaging calculations, selected boxes, and snapshots</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Rec #</th>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Recommended Box</th>
+                        <th>Packaging Cost</th>
+                        <th>Total Weight</th>
+                        <th>Algorithm</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th class="text-end">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rec in recommendations %}
+                    <tr>
+                        <td class="fw-bold">#{{ rec.id }}</td>
+                        <td>
+                            <a href="{% url 'orders:order_detail' rec.order.id %}" class="fw-semibold text-decoration-none">
+                                {{ rec.order.order_number }}
+                            </a>
+                        </td>
+                        <td>{{ rec.order.customer_name }}</td>
+                        <td>
+                            {% if rec.has_suitable_box %}
+                                <span class="badge bg-primary">{{ rec.selected_box_code }}</span>
+                                <small class="text-muted d-block">{{ rec.selected_box_name }}</small>
+                            {% else %}
+                                <span class="badge bg-danger">No Box</span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold text-dark">
+                            {% if rec.selected_cost %}${{ rec.selected_cost }}{% else %}—{% endif %}
+                        </td>
+                        <td>{{ rec.total_weight }} kg</td>
+                        <td><small class="text-muted">{{ rec.algorithm_version }}</small></td>
+                        <td>
+                            {% if rec.is_confirmed %}
+                                <span class="badge bg-success">Confirmed ({{ rec.confirmed_box_code }})</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Unconfirmed</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ rec.created_at|date:"M d, Y H:i" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'recommendations:recommendation_detail' rec.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-5 text-muted">No recommendations generated yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

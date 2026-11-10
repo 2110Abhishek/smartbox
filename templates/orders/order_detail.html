@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Order {{ order.order_number }} - SmartBox{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bold mb-0">Order: {{ order.order_number }}</h2>
+            <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+        </div>
+        <p class="text-muted mb-0">Customer: <strong>{{ order.customer_name }}</strong> {% if order.customer_email %}({{ order.customer_email }}){% endif %} &bull; Created {{ order.created_at|date:"M d, Y H:i" }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if order.can_recommend %}
+        <a href="{% url 'recommendations:generate' order.id %}" class="btn btn-primary px-4 py-2">
+            <i class="bi bi-cpu-fill me-1"></i> Generate Box Recommendation
+        </a>
+        {% endif %}
+        {% if order.status != 'COMPLETED' and order.status != 'CANCELLED' %}
+        <a href="{% url 'orders:order_cancel' order.id %}" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this order?');">
+            Cancel Order
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Order Items Table -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Order Items & Measurement Snapshots</span>
+                <span class="badge bg-secondary">{{ order.total_quantity }} Total Units</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>SKU</th>
+                                <th>Product</th>
+                                <th>Snapshot Dimensions</th>
+                                <th>Unit Weight</th>
+                                <th>Qty</th>
+                                <th class="text-end">Subtotal Weight</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td class="fw-bold">{{ item.product_sku_snapshot }}</td>
+                                <td>{{ item.product_name_snapshot }}</td>
+                                <td>{{ item.length_snapshot }} × {{ item.width_snapshot }} × {{ item.height_snapshot }} cm</td>
+                                <td>{{ item.weight_snapshot }} kg</td>
+                                <td><span class="badge bg-light text-dark border">{{ item.quantity }}</span></td>
+                                <td class="text-end fw-semibold">{{ item.total_weight }} kg</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No items in this order.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="5" class="text-end">Total Combined Weight:</th>
+                                <th class="text-end text-primary fs-6">{{ order.total_weight }} kg</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Recommendation Panel -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header py-3">
+                <span class="fw-bold">Fulfillment Recommendation</span>
+            </div>
+            <div class="card-body">
+                {% if latest_rec %}
+                    {% if latest_rec.has_suitable_box %}
+                        <div class="alert alert-success d-flex align-items-center mb-3">
+                            <i class="bi bi-check-circle-fill fs-3 me-3 text-success"></i>
+                            <div>
+                                <div class="fw-bold fs-5">{{ latest_rec.selected_box_code }}</div>
+                                <div class="small">{{ latest_rec.selected_box_name }}</div>
+                            </div>
+                        </div>
+                        <ul class="list-group list-group-flush small mb-3">
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">Packaging Material Cost:</span>
+                                <strong class="text-primary">${{ latest_rec.selected_cost }}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">Calculated Weight:</span>
+                                <strong>{{ latest_rec.total_weight }} kg</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">Algorithm Engine:</span>
+                                <span>{{ latest_rec.algorithm_version }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">Confirmation Status:</span>
+                                {% if latest_rec.is_confirmed %}
+                                    <span class="badge bg-success">Confirmed ({{ latest_rec.confirmed_box_code }})</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Unconfirmed</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                        <a href="{% url 'recommendations:recommendation_detail' latest_rec.id %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-box me-1"></i> View 3D Packing & Alternatives
+                        </a>
+                    {% else %}
+                        <div class="alert alert-danger mb-3">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                            <strong>No Suitable Box Found</strong>
+                            <p class="small mb-0 mt-1">None of the available shipping boxes could accommodate all products within dimensional or weight limits.</p>
+                        </div>
+                        <a href="{% url 'recommendations:recommendation_detail' latest_rec.id %}" class="btn btn-outline-danger w-100">
+                            View Rejection Analysis
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-box-seam fs-1 text-secondary mb-2 d-block opacity-50"></i>
+                        <p class="mb-3">No recommendation generated for this order yet.</p>
+                        {% if order.can_recommend %}
+                        <a href="{% url 'recommendations:generate' order.id %}" class="btn btn-primary btn-sm">
+                            Generate Now
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

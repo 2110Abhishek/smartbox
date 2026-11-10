@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Recommendation for {{ order.order_number }} - SmartBox{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h2 class="fw-bold mb-0">Packaging Analysis: {{ order.order_number }}</h2>
+            <span class="badge bg-secondary">Rec #{{ recommendation.id }}</span>
+            <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+        </div>
+        <p class="text-muted mb-0">Engine: <strong>{{ recommendation.algorithm_version }}</strong> &bull; Generated {{ recommendation.created_at|date:"M d, Y H:i:s" }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Order
+        </a>
+        {% if recommendation.has_suitable_box and not recommendation.is_confirmed %}
+        <form method="post" action="{% url 'recommendations:confirm_box' recommendation.id %}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="box_code" value="{{ recommendation.selected_box_code }}">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check2-circle me-1"></i> Confirm Recommended Box
+            </button>
+        </form>
+        {% endif %}
+        {% if order.status == 'READY' or order.status == 'RECOMMENDED' %}
+        <form method="post" action="{% url 'recommendations:mark_packed' recommendation.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-purple text-white" style="background-color: #7c3aed;">
+                <i class="bi bi-box-seam me-1"></i> Mark as Packed
+            </button>
+        </form>
+        {% endif %}
+        {% if order.status == 'PACKED' %}
+        <form method="post" action="{% url 'recommendations:mark_complete' recommendation.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-all me-1"></i> Mark as Completed
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Section 1: Order Summary Bar -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3">
+            <div class="text-muted small fw-semibold">Order Reference</div>
+            <div class="fs-5 fw-bold text-dark mt-1">{{ order.order_number }}</div>
+            <div class="small text-muted">{{ order.customer_name }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3">
+            <div class="text-muted small fw-semibold">Distinct Products</div>
+            <div class="fs-5 fw-bold text-dark mt-1">{{ order.items.count }} Lines</div>
+            <div class="small text-muted">{{ order.total_quantity }} total units</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3">
+            <div class="text-muted small fw-semibold">Total Order Weight</div>
+            <div class="fs-5 fw-bold text-primary mt-1">{{ recommendation.total_weight }} kg</div>
+            <div class="small text-muted">Combined payload weight</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3">
+            <div class="text-muted small fw-semibold">Packaging Status</div>
+            <div class="fs-5 fw-bold mt-1">
+                {% if recommendation.has_suitable_box %}
+                    <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Suitable Box Found</span>
+                {% else %}
+                    <span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i> No Suitable Box</span>
+                {% endif %}
+            </div>
+            <div class="small text-muted">
+                {% if recommendation.is_confirmed %}Confirmed: {{ recommendation.confirmed_box_code }}{% else %}Awaiting Confirmation{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if recommendation.has_suitable_box and primary_result %}
+<!-- Section 2: Recommended Box Hero -->
+<div class="card border-primary mb-4 shadow-sm">
+    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+        <div>
+            <span class="badge bg-warning text-dark me-2 fw-bold">PRIMARY RECOMMENDATION</span>
+            <span class="fs-5 fw-bold">{{ primary_result.box_code }} &mdash; {{ primary_result.box_name }}</span>
+        </div>
+        <div class="fs-4 fw-bold">
+            ${{ primary_result.cost }} <small class="fs-6 text-white-50">material cost</small>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-4 align-items-center">
+            <div class="col-md-7">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold">Internal Dimensions</div>
+                        <div class="fs-6 fw-bold text-dark">
+                            {{ primary_result.placements.first.box_result.volume|default:primary_result.volume }} cm³
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold">Weight Utilization</div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: {{ primary_result.weight_utilization_pct }}%;"></div>
+                            </div>
+                            <span class="fw-bold small">{{ primary_result.weight_utilization_pct }}%</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold">Volume Utilization</div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar bg-info" style="width: {{ primary_result.volume_utilization_pct }}%;"></div>
+                            </div>
+                            <span class="fw-bold small">{{ primary_result.volume_utilization_pct }}%</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small fw-semibold">Total Items Placed</div>
+                        <div class="fs-6 fw-bold text-success">
+                            <i class="bi bi-check2 me-1"></i> {{ primary_result.placements.count }} of {{ order.total_quantity }} units fitted
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 text-md-end">
+                {% if not recommendation.is_confirmed %}
+                <form method="post" action="{% url 'recommendations:confirm_box' recommendation.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="box_code" value="{{ primary_result.box_code }}">
+                    <button type="submit" class="btn btn-primary px-4 py-2">
+                        <i class="bi bi-check-lg me-1"></i> Accept & Confirm This Box
+                    </button>
+                </form>
+                {% else %}
+                <div class="badge bg-success p-2 fs-6">
+                    <i class="bi bi-check-circle me-1"></i> Confirmed for Packaging
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section 3: 3D Packing Visualization & Coordinate Table -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <div>
+            <i class="bi bi-bounding-box-circles text-primary me-2"></i>
+            <span class="fw-bold">3D Packing Placements & Coordinate Mapping ({{ primary_result.box_code }})</span>
+        </div>
+        <span class="badge bg-light text-dark border">Deterministic Extreme Point Heuristic</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Product SKU</th>
+                        <th>Product Name</th>
+                        <th>Unit Index</th>
+                        <th>Placement Position (X, Y, Z)</th>
+                        <th>Oriented Dimensions (L × W × H)</th>
+                        <th>3D Bounding Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in primary_result.placements.all %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td class="fw-bold">{{ p.item_sku }}</td>
+                        <td>{{ p.item_name }}</td>
+                        <td><span class="badge bg-secondary">Unit {{ p.unit_index }}</span></td>
+                        <td>
+                            <code class="text-primary fw-bold">({{ p.x }}, {{ p.y }}, {{ p.z }})</code> cm
+                        </td>
+                        <td>{{ p.placed_length }} × {{ p.placed_width }} × {{ p.placed_height }} cm</td>
+                        <td class="small text-muted">
+                            [x: {{ p.x }}&rarr;{{ p.x|add:p.placed_length }}, y: {{ p.y }}&rarr;{{ p.y|add:p.placed_width }}, z: {{ p.z }}&rarr;{{ p.z|add:p.placed_height }}]
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">No placements recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Section 4: Alternative Eligible Boxes -->
+{% if eligible_results.count > 1 %}
+<div class="card mb-4 shadow-sm">
+    <div class="card-header py-3">
+        <i class="bi bi-diagram-3 text-success me-2"></i>
+        <span class="fw-bold">Alternative Eligible Shipping Boxes</span>
+        <small class="text-muted ms-2">(Ranked by Material Cost & Internal Volume)</small>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Rank</th>
+                        <th>Box Code</th>
+                        <th>Name</th>
+                        <th>Volume</th>
+                        <th>Cost</th>
+                        <th>Weight Util</th>
+                        <th>Volume Util</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alt in eligible_results %}
+                    {% if forloop.counter > 1 %}
+                    <tr>
+                        <td class="fw-bold text-muted">#{{ alt.rank }}</td>
+                        <td class="fw-bold">{{ alt.box_code }}</td>
+                        <td>{{ alt.box_name }}</td>
+                        <td>{{ alt.volume }} cm³</td>
+                        <td class="fw-bold text-dark">${{ alt.cost }}</td>
+                        <td>{{ alt.weight_utilization_pct }}%</td>
+                        <td>{{ alt.volume_utilization_pct }}%</td>
+                        <td class="text-end">
+                            <form method="post" action="{% url 'recommendations:confirm_box' recommendation.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="box_code" value="{{ alt.box_code }}">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    Select This Box
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Section 5: Rejected Candidate Boxes -->
+<div class="card mb-4 shadow-sm border-danger border-opacity-25">
+    <div class="card-header bg-light py-3">
+        <i class="bi bi-x-octagon text-danger me-2"></i>
+        <span class="fw-bold">Rejected Candidate Boxes</span>
+        <small class="text-muted ms-2">Transparent failure explanations for ineligible options</small>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Box Code</th>
+                        <th>Name</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                        <th>Reason for Ineligibility</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rej in rejected_results %}
+                    <tr>
+                        <td class="fw-bold text-secondary">{{ rej.box_code }}</td>
+                        <td>{{ rej.box_name }}</td>
+                        <td>${{ rej.cost }}</td>
+                        <td><span class="badge bg-danger bg-opacity-10 text-danger">Ineligible</span></td>
+                        <td class="text-danger fw-semibold">{{ rej.rejection_reason }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">All evaluated boxes were eligible.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

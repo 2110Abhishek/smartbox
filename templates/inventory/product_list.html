@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Products - SmartBox{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Product Catalog</h2>
+        <p class="text-muted mb-0">Master dimensional measurements and weights for box packing calculation</p>
+    </div>
+    <a href="{% url 'inventory:product_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Add Product
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 p-3">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search by SKU or Name...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive Only</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+        </div>
+        {% if query or status_filter %}
+        <div class="col-md-2">
+            <a href="{% url 'inventory:product_list' %}" class="btn btn-link text-decoration-none text-muted">Clear</a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Product Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Dimensions (L × W × H)</th>
+                        <th>Volume</th>
+                        <th>Weight</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td class="fw-bold">{{ p.sku }}</td>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.length }} × {{ p.width }} × {{ p.height }} cm</td>
+                        <td>{{ p.volume }} cm³</td>
+                        <td>{{ p.weight }} kg</td>
+                        <td>
+                            {% if p.is_active %}
+                                <span class="badge bg-success bg-opacity-10 text-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'inventory:product_update' p.id %}" class="btn btn-sm btn-outline-secondary me-1" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'inventory:product_toggle' p.id %}" class="btn btn-sm {% if p.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}" title="Toggle Active">
+                                <i class="bi {% if p.is_active %}bi-pause-circle{% else %}bi-play-circle{% endif %}"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">No products found matching criteria.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
