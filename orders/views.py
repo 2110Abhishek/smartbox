@@ -55,16 +55,23 @@ def order_create(request):
         if form.is_valid() and formset.is_valid():
             order = form.save(commit=False)
             order.created_by = request.user
+            if not order.status:
+                order.status = OrderStatus.PENDING
             order.save()
             formset.instance = order
             formset.save()
             messages.success(request, f"Order {order.order_number} created successfully.")
             return redirect("orders:order_detail", pk=order.pk)
+        else:
+            if form.errors:
+                messages.error(request, f"Order details error: {form.errors.as_text()}")
+            if formset.errors:
+                messages.error(request, "Please check the product items in the order.")
     else:
         # Pre-generate unique order number
         import uuid
         order_num = f"ORD-{uuid.uuid4().hex[:6].upper()}"
-        form = OrderForm(initial={"order_number": order_num, "status": OrderStatus.PENDING})
+        form = OrderForm(initial={"order_number": order_num})
         formset = OrderItemFormSet()
 
     return render(request, "orders/order_form.html", {

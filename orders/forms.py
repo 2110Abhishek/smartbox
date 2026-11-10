@@ -7,12 +7,11 @@ from inventory.models import Product
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ["order_number", "customer_name", "customer_email", "status"]
+        fields = ["order_number", "customer_name", "customer_email"]
         widgets = {
             "order_number": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. ORD-1001"}),
             "customer_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Customer Full Name"}),
             "customer_email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "customer@example.com"}),
-            "status": forms.Select(attrs={"class": "form-select"}),
         }
 
 
@@ -38,3 +37,4 @@ OrderItemFormSet = inlineformset_factory(
     extra=1,
     can_delete=True
 )
+
