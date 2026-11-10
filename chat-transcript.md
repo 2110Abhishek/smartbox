@@ -220,3 +220,156 @@ You can embed this image in an artifact if you need the USER to review it.
 
 ---
 
+## Step 11 - Assistant Response (2026-11-10T13:57:34Z)
+
+### Login Credentials
+
+The seeded warehouse accounts are:
+
+| Role | Username | Password | Access Level |
+|---|---|---|---|
+| **Administrator** | `admin` | `admin123` | Full master catalog, user management, and analytics |
+| **Warehouse Staff** | `warehouse` | `warehouse123` | Order creation, 3D recommendations, packaging fulfillment |
+
+*(Note: In the screenshot, 10 characters were typed into the password field. The password `admin123` is 8 characters long.)*
+
+---
+
+### Changes Made to Assist You
+1. **Password Confirmed & Re-applied:** Explicitly re-verified and reset `admin` password to `admin123`.
+2. **Login Card Helper Added:** The login screen at `http://127.0.0.1:8000/accounts/login/` now displays a helper card showing the demo credentials for quick reference.
+3. **Dynamic Product Lines:** Added a `+ Add Another Product Line` button to `templates/orders/order_form.html` to easily create multi-product orders from the UI.
+
+---
+
+## Step 12 - User Input (2026-11-10T14:01:18Z)
+
+<USER_REQUEST>
+hwow to use it 
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-11-10T19:31:18+05:30.
+
+The user's current state is as follows:
+Active Document: d:\smartbox\config\__init__.py (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+</ADDITIONAL_METADATA>
+
+---
+
+## Step 13 - Assistant Response (2026-11-10T14:03:29Z)
+
+I am running the test suite to ensure all 66 tests pass with the interactive 3D visualization and UI updates.
+
+---
+
+## Step 14 - Assistant Response (2026-11-10T14:04:09Z)
+
+## How to Use SmartBox (Step-by-Step Guide)
+
+---
+
+### Step 1: Start the Development Server
+
+If your server isn't already running in a terminal, run this command in PowerShell from the `d:\smartbox` folder:
+
+```powershell
+.\venv\Scripts\python.exe manage.py runserver
+```
+
+Now open your browser and navigate to:
+👉 **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
+
+---
+
+### Step 2: Sign In
+
+On the login screen, enter the seeded credentials:
+
+- **Username:** `admin`
+- **Password:** `admin123` *(8 characters)*
+- Click **"Sign In to Warehouse"**.
+
+*(You can also log in as warehouse staff using `warehouse` / `warehouse123`)*
+
+---
+
+### Step 3: Run Your First 3D Box Recommendation
+
+The database has already been seeded with realistic products, shipping boxes, and sample orders so you can immediately see the system in action:
+
+1. Click **"Pending Packaging"** in the left sidebar.
+2. Locate order **`ORD-1004`** (2 Laptops + 2 Wireless Mice).
+3. Click the green button: **"Run Recommendation"** (or click the order and hit **"Generate Box Recommendation"**).
+4. **Review the Results:**
+   - **Primary Recommendation:** Shows the lowest-cost box that physically fits all items (e.g., `BOX-M` at \$25.00) along with its weight and volume utilization percentages.
+   - **Interactive 3D Visualizer:** An interactive 3D box appears right on the page!
+     - **Left-Click + Drag:** Rotates the box in 3D space.
+     - **Scroll Wheel:** Zooms in/out.
+     - **Right-Click + Drag:** Pans across the box.
+     - **Color-Coded Legend:** Identifies each product and its unit number inside the box.
+   - **3D Placement Table:** Lists the exact spatial coordinates `(X, Y, Z)` and rotated dimensions for every individual unit.
+   - **Alternative Eligible Boxes:** Displays larger or alternative boxes that can also fit the order, sorted by material cost.
+   - **Rejected Boxes Table:** Transparently explains why other candidate boxes were disqualified (e.g., *“Maximum payload weight exceeded”* or *“Product exceeds dimensions in all possible orientations”*).
+5. **Confirm and Fulfill:**
+   - Click **"Accept & Confirm This Box"** $\to$ Changes status to *Ready for Packaging*.
+   - Click **"Mark as Packed"** $\to$ Changes status to *Packed*.
+   - Click **"Mark as Completed"** $\to$ Finishes the order!
+
+---
+
+### Step 4: Create a New Order
+
+1. Click **"Create Order"** in the left sidebar.
+2. Enter the customer's name and optional email (e.g., *Jane Doe*, *jane@example.com*).
+3. Select a product and set its quantity.
+4. Click the **"+ Add Another Product Line"** button to add more items (e.g., 1 Studio Headphone + 2 Ceramic Mugs).
+5. Click **"Save Order"**.
+6. On the Order Detail screen, click **"Generate Box Recommendation"** to have the 3D Bin Packing algorithm calculate the optimal packaging!
+
+---
+
+### Step 5: Managing Inventory & Boxes
+
+- **Products ([`/inventory/products/`](http://127.0.0.1:8000/inventory/products/)):**
+  - Add new products with their Length, Width, Height (cm), and Weight (kg).
+  - Toggle products active/inactive.
+- **Shipping Boxes ([`/inventory/boxes/`](http://127.0.0.1:8000/inventory/boxes/)):**
+  - Add or update available box types with internal dimensions, maximum payload weight, and packaging material cost.
+
+---
+
+### Step 6: View Packaging Analytics
+
+Click **"Analytics"** in the sidebar to review:
+- **Total packaging material expenditure** vs. average cost per order.
+- **Box usage distribution** (which box codes are most frequently recommended).
+- **Rejection frequency breakdown** (identifying the top reasons candidate boxes were unsuitable).
+
+---
+
+## Step 15 - User Input (2026-11-10T14:12:35Z)
+
+<USER_REQUEST>
+when I save order it is not saved 
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-11-10T19:42:35+05:30.
+
+The user's current state is as follows:
+Active Document: d:\smartbox\config\__init__.py (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+
+The user has uploaded 1 image(s):
+- C:/Users/Admin/.gemini/antigravity/brain/2b50885a-2866-4cbc-9fdb-30e69850356a/.user_uploaded/media_1794319871048_85a3e164.png
+You can embed this image in an artifact if you need the USER to review it.
+</ADDITIONAL_METADATA>
+
+---
+
+## Step 16 - Assistant Response (2026-11-10T14:15:10Z)
+
+I am running the test suite to verify the order form submission fix.
+
+---
+
