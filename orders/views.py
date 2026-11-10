@@ -85,11 +85,46 @@ def order_create(request):
 def order_detail(request, pk):
     order = get_object_or_404(Order.objects.prefetch_related("items", "recommendations"), pk=pk)
     latest_rec = order.recommendations.first()
+    active_products = Product.objects.filter(is_active=True)
     return render(request, "orders/order_detail.html", {
         "order": order,
         "items": order.items.all(),
         "latest_rec": latest_rec,
+        "active_products": active_products,
     })
+
+
+@login_required
+def order_add_item(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    if order.status in [OrderStatus.COMPLETED, OrderStatus.CANCELLED]:
+        messages.error(request, "Cannot modify completed or cancelled orders.")
+        return redirect("orders:order_detail", pk=pk)
+
+    if request.method == "POST":
+        product_id = request.POST.get("product_id")
+        try:
+            quantity = int(request.POST.get("quantity", 1))
+            if quantity <= 0:
+                messages.error(request, "Quantity must be greater than zero.")
+                return redirect("orders:order_detail", pk=pk)
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid quantity entered.")
+            return redirect("orders:order_detail", pk=pk)
+
+        product = get_object_or_404(Product, pk=product_id)
+        if not product.is_active:
+            messages.error(request, "Cannot add inactive product.")
+            return redirect("orders:order_detail", pk=pk)
+
+        OrderItem.objects.create(order=order, product=product, quantity=quantity)
+        if order.status in [OrderStatus.RECOMMENDED, OrderStatus.READY_FOR_PACKAGING]:
+            order.status = OrderStatus.PENDING
+            order.save()
+
+        messages.success(request, f"Added {quantity}x {product.sku} ({product.name}) to order {order.order_number}.")
+
+    return redirect("orders:order_detail", pk=pk)
 
 
 @login_required

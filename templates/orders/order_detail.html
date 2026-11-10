@@ -30,8 +30,15 @@
     <div class="col-lg-8">
         <div class="card shadow-sm mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <span class="fw-bold">Order Items & Measurement Snapshots</span>
-                <span class="badge bg-secondary">{{ order.total_quantity }} Total Units</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold">Order Items & Measurement Snapshots</span>
+                    <span class="badge bg-secondary">{{ order.total_quantity }} Total Units</span>
+                </div>
+                {% if order.status != 'COMPLETED' and order.status != 'CANCELLED' %}
+                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                    <i class="bi bi-plus-circle me-1"></i> Add Product
+                </button>
+                {% endif %}
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -140,4 +147,38 @@
         </div>
     </div>
 </div>
+
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'orders:order_add_item' order.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Add Product to {{ order.order_number }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Select Active Product</label>
+                        <select name="product_id" class="form-select" required>
+                            {% for p in active_products %}
+                                <option value="{{ p.id }}">{{ p.sku }} &mdash; {{ p.name }} ({{ p.length }}×{{ p.width }}×{{ p.height }}cm, {{ p.weight }}kg)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Quantity</label>
+                        <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add to Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
+
