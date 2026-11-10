@@ -16,3 +16,4 @@ urlpatterns = [
     path("boxes/<int:pk>/edit/", views.box_update, name="box_update"),
     path("boxes/<int:pk>/toggle/", views.box_toggle_status, name="box_toggle"),
 ]
+

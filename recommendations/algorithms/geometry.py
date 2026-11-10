@@ -158,3 +158,4 @@ class PackingResult:
             "volume_utilization_pct": float(self.volume_utilization_pct),
             "placements": [p.to_dict() for p in self.placements],
         }
+

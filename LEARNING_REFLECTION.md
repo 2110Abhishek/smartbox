@@ -44,3 +44,4 @@ This assignment reinforced that great engineering isn't just about getting code 
 - How do we ensure fairness? (Sort eligible boxes by cost first, then volume, then code for stable determinism).
 
 Building SmartBox gave me hands-on mastery over practical algorithmic cartonization, spatial bounding, and enterprise-grade Django architecture.
+

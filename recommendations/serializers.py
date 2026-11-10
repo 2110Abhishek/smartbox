@@ -35,3 +35,4 @@ class RecommendationSerializer(serializers.ModelSerializer):
             "has_suitable_box", "is_confirmed", "confirmed_box_code",
             "confirmed_at", "created_at", "result_payload", "box_results"
         ]
+

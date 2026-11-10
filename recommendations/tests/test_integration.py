@@ -125,3 +125,4 @@ class RecommendationIntegrationTests(TestCase):
         self.assertTrue(rec.is_confirmed)
         self.assertEqual(rec.confirmed_box_code, "BOX-S")
         self.assertIsNotNone(rec.confirmed_at)
+

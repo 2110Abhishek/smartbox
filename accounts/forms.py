@@ -16,3 +16,4 @@ class LoginForm(AuthenticationForm):
             "placeholder": "Enter password"
         })
     )
+

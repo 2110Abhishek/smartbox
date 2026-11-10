@@ -136,3 +136,4 @@ class Command(BaseCommand):
             OrderItem.objects.create(order=order4, product=created_prods["MOUSE-WL-01"], quantity=2)
 
         self.stdout.write(self.style.SUCCESS("Successfully seeded demo orders and generated recommendations!"))
+

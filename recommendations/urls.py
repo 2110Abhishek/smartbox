@@ -19,3 +19,4 @@ urlpatterns = [
     path("api/v1/recommendations/<int:pk>/confirm/", views.api_confirm_recommendation, name="api_confirm_recommendation"),
     path("api/v1/recommendations/<int:pk>/complete/", views.api_complete_packaging, name="api_complete_packaging"),
 ]
+

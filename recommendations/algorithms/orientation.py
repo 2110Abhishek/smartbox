@@ -35,3 +35,4 @@ def get_all_orientations(dims: Dimensions, allow_rotation: bool = True) -> List[
             unique_orientations.append(Dimensions(length=l, width=w, height=h))
 
     return unique_orientations
+

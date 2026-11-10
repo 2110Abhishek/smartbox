@@ -66,3 +66,4 @@ def has_collision_with_existing(
         if check_overlap(point, dims, placed.position, placed.dimensions):
             return True
     return False
+

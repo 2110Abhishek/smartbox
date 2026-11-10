@@ -126,3 +126,4 @@ When multiple boxes satisfy both weight limits and 3D packing validation:
 3. **Tertiary Criterion:** Stable alphabetical box code ordering.
 
 The first box becomes the primary recommendation, while remaining eligible boxes are displayed as sorted alternative options.
+

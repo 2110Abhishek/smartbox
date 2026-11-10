@@ -32,3 +32,4 @@ class ShippingBoxForm(forms.ModelForm):
             "cost": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "placeholder": "Packaging material cost"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+

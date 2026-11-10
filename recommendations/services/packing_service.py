@@ -61,3 +61,4 @@ def evaluate_box_packing(
         box_code=box_info.get("code"),
         allow_rotation=allow_rotation
     )
+

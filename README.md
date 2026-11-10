@@ -240,3 +240,4 @@ Base URL: `/api/v1/`
 5. **LEARNING_REFLECTION.md:** Personal retrospective written by the developer on 3D packing math, data drift, and architectural trade-offs ([LEARNING_REFLECTION.md](LEARNING_REFLECTION.md)).
 6. **Chat Transcript:** Attached genuine export in [chat-transcript.md](chat-transcript.md) and [chat-transcript.jsonl](chat-transcript.jsonl).
 7. **CI Pipeline:** Automated GitHub Actions test workflow in [.github/workflows/tests.yml](.github/workflows/tests.yml).
+

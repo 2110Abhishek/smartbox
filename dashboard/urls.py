@@ -7,3 +7,4 @@ urlpatterns = [
     path("", views.dashboard_index, name="index"),
     path("analytics/", views.analytics_view, name="analytics"),
 ]
+

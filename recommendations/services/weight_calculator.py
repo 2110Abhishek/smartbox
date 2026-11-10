@@ -18,3 +18,4 @@ def calculate_order_weight(items: List[Dict[str, Any]]) -> Decimal:
         qty = Decimal(str(item.get("quantity", 0)))
         total += unit_weight * qty
     return total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
