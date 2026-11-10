@@ -231,6 +231,49 @@ Base URL: `/api/v1/`
 
 ---
 
+## Live Cloud Deployment Guide
+
+The repository includes pre-configured production settings:
+- **Web Server:** `gunicorn`
+- **Static Assets:** `whitenoise` with compression and cache headers
+- **Database:** Auto-detects PostgreSQL via `DATABASE_URL` (or falls back to SQLite)
+- **Deployment Manifests:** `render.yaml`, `Procfile`, `build.sh`, `Dockerfile`, and `docker-compose.yml`
+
+### Option 1: Free 1-Click Deployment on Render.com (Recommended)
+
+1. Push your repository to GitHub.
+2. Sign in to [Render.com](https://render.com/) and click **New +** $\to$ **Web Service**.
+3. Connect your GitHub repository.
+4. Render will auto-detect the configuration, or set:
+   - **Environment:** `Python 3`
+   - **Build Command:** `./build.sh` (or `pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput && python manage.py seed_demo_data`)
+   - **Start Command:** `gunicorn config.wsgi:application`
+5. Add Environment Variables:
+   - `DEBUG`: `False`
+   - `ALLOWED_HOSTS`: `*`
+   - `CSRF_TRUSTED_ORIGINS`: `https://*.onrender.com`
+6. Click **Deploy Web Service** — Render will build, migrate, seed data, and launch your live URL with free automatic HTTPS!
+
+---
+
+### Option 2: Deploy on Railway
+
+1. Install the Railway CLI or visit [Railway.app](https://railway.app/).
+2. Select **Deploy from GitHub repo**.
+3. Railway automatically detects `Procfile` and launches the application.
+
+---
+
+### Option 3: Docker Deployment
+
+Run anywhere with Docker installed:
+```bash
+docker compose up --build
+```
+Open `http://localhost:8000/`.
+
+---
+
 ## Submission Deliverables
 
 1. **Source Code:** Full modular Django repository.
