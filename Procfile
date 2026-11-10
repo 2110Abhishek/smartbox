@@ -1,1 +1,1 @@
-web: gunicorn config.wsgi:application --log-file -
+web: python manage.py migrate && python manage.py collectstatic --noinput && python manage.py seed_demo_data && gunicorn config.wsgi:application --log-file -

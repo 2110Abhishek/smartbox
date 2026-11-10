@@ -15,3 +15,4 @@ echo "Seeding demo inventory & boxes..."
 python manage.py seed_demo_data
 
 echo "Build completed successfully!"
+
